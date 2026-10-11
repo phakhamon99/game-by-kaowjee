@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Arcade - ศูนย์รวมมินิเกมสุดมันส์</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800&family=Press+Start+2P&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#0a0a12',
+                            card: '#121324',
+                            accent: '#00f0ff',
+                            pink: '#ff007f',
+                            purple: '#7000ff',
+                            yellow: '#ffe600',
+                            green: '#00ff66'
+                        }
+                    },
+                    fontFamily: {
+                        kanit: ['Kanit', 'sans-serif'],
+                        arcade: ['"Press Start 2P"', 'cursive'],
+                        cyber: ['Orbitron', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Arcade Effects & Aesthetics */
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #080811;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(112, 0, 255, 0.15), transparent 70%),
+                radial-gradient(circle at 0% 100%, rgba(0, 240, 255, 0.1), transparent 50%);
+            color: #e2e8f0;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism elements */
+        .glass-panel {
+            background: rgba(18, 19, 36, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .neon-border-cyan {
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        .neon-border-pink {
+            border: 1px solid rgba(255, 0, 127, 0.4);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
+        }
+
+        .neon-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+
+        .neon-text-pink {
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+        }
+
+        .arcade-btn {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arcade-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2b4a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        /* Scanline Overlay option */
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* Responsive Canvas container */
+        canvas {
+            touch-action: none;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-100">
+
+    <!-- Scanline effect for retro feel -->
+    <div class="scanline"></div>
+
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showLobby()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyber-purple via-cyber-pink to-cyber-accent flex items-center justify-center text-white shadow-lg shadow-cyber-purple/30">
+                    <i class="fa-solid font-arcade text-lg">🎮</i>
+                </div>
+                <div>
+                    <h1 class="font-cyber font-extrabold text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyber-accent via-white to-cyber-pink leading-tight">
+                        CYBER<span class="text-cyber-yellow">ARCADE</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-light">ศูนย์รวมมินิเกมออนไลน์ 2026</p>
+                </div>
+            </div>
+
+            <!-- Stats & Sound Controls -->
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <div class="hidden sm:flex items-center space-x-4 text-xs font-cyber">
+                    <div class="flex items-center space-x-1.5 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-trophy text-cyber-yellow"></i>
+                        <span class="text-slate-400">คะแนนรวม:</span>
+                        <span id="total-score-display" class="text-cyber-yellow font-bold">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-medal text-cyber-accent"></i>
+                        <span class="text-slate-400">ความสำเร็จ:</span>
+                        <span id="achievements-count" class="text-cyber-accent font-bold">0/6</span>
+                    </div>
+                </div>
+
+                <!-- Sound Toggle Button -->
+                <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-300 transition" title="เปิด/ปิด เสียง">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-cyber-accent"></i>
+                </button>
+
+                <!-- Achievements Button -->
+                <button onclick="openModal('achievements-modal')" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-cyber-yellow transition" title="เกียรติยศ">
+                    <i class="fa-solid fa-award text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8">
+
+        <!-- LOBBY VIEW -->
+        <section id="lobby-view" class="space-y-8 transition-all duration-300">
+            <!-- Hero Banner -->
+            <div class="relative rounded-3xl overflow-hidden glass-panel border border-cyber-purple/30 p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-cyber-purple/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-20 -top-20 w-80 h-80 bg-cyber-accent/15 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="space-y-4 max-w-xl text-center md:text-left z-10">
+                    <span class="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 rounded-full">
+                        ⚡ พร้อมทดสอบความเร็วและไหวพริบ
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-kanit">
+                        ปลดปล่อยขีดจำกัด <br class="hidden sm:inline"/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyber-accent via-cyber-pink to-cyber-yellow">
+                            ดวลคะแนนสูงสุด
+                        </span>
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base font-light">
+                        เลือกลุยในเกมที่คุณชอบ สะสมเหรียญรางวัล ท้าทายสถิติของตัวเองและทำลายสถิติสูงสุด!
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 z-10">
+                    <div class="text-center px-4 py-3 bg-slate-900/60 rounded-2xl border border-slate-800 w-28">
+                        <div class="text-2xl font-cyber font-bold text-cyber-accent" id="stat-played">0</div>
+                        <div class="text-xs text-slate-400">เล่นไปแล้ว</div>
+                    </div>
+                    <div class="text-center px-4 py-3 bg-slate-900/60 rounded-2xl border border-slate-800 w-28">
+                        <div class="text-2xl font-cyber font-bold text-cyber-pink" id="stat-wins">0</div>
+                        <div class="text-xs text-slate-400">ชนะถล่มทลาย</div>
+                    </div>
+                    <div class="text-center px-4 py-3 bg-slate-900/60 rounded-2xl border border-slate-800 w-28">
+                        <div class="text-2xl font-cyber font-bold text-cyber-yellow" id="stat-high">0</div>
+                        <div class="text-xs text-slate-400">คะแนนเดี่ยวสูงสุด</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-cyber-pink"></i>
+                        <span>เกมทั้งหมด</span>
+                    </h3>
+                    <span class="text-xs text-slate-400 font-mono">4 GAMES AVAILABLE</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    <!-- Game 1: Space Shooter -->
+                    <div class="glass-panel rounded-2xl p-5 hover:border-cyber-accent/60 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-40 rounded-xl bg-gradient-to-b from-indigo-950 to-slate-950 overflow-hidden flex items-center justify-center mb-4 border border-slate-800">
+                                <div class="absolute inset-0 bg-[radial-gradient(#00f0ff_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                                <i class="fa-solid fa-rocket text-5xl text-cyber-accent group-hover:scale-125 transition duration-300 group-hover:rotate-12"></i>
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-cyber bg-cyber-pink/80 text-white rounded font-bold">ACTION</span>
+                            </div>
+                            <h4 class="font-bold text-lg text-white mb-1">Space Defender 2077</h4>
+                            <p class="text-xs text-slate-400 mb-4 line-clamp-2">ตะลุยอวกาศ ยิงทำลายยานศัตรู หลบอุกกาบาต และเก็บไอเทมเพิ่มพลัง!</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400 mb-3 bg-slate-900/50 p-2 rounded-lg">
+                                <span>สถิติสูงสุด:</span>
+                                <span class="font-cyber text-cyber-yellow font-bold" id="hs-space">0</span>
+                            </div>
+                            <button onclick="launchGame('space')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-bold text-slate-950 shadow-lg shadow-cyan-500/20 transition arcade-btn flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play text-sm"></i> เล่นเลย
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Game 2: Retro Snake -->
+                    <div class="glass-panel rounded-2xl p-5 hover:border-cyber-green/60 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-40 rounded-xl bg-gradient-to-b from-emerald-950 to-slate-950 overflow-hidden flex items-center justify-center mb-4 border border-slate-800">
+                                <div class="absolute inset-0 bg-[radial-gradient(#00ff66_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                                <i class="fa-solid fa-staff-snake text-5xl text-cyber-green group-hover:scale-125 transition duration-300"></i>
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-cyber bg-emerald-600/80 text-white rounded font-bold">ARCADE</span>
+                            </div>
+                            <h4 class="font-bold text-lg text-white mb-1">Cyber Snake</h4>
+                            <p class="text-xs text-slate-400 mb-4 line-clamp-2">เกมงูในตำนานสไตล์นีออน บังคับงูเก็บพลังงาน เพิ่มความยาว และเลเวลความเร็ว!</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400 mb-3 bg-slate-900/50 p-2 rounded-lg">
+                                <span>สถิติสูงสุด:</span>
+                                <span class="font-cyber text-cyber-yellow font-bold" id="hs-snake">0</span>
+                            </div>
+                            <button onclick="launchGame('snake')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition arcade-btn flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play text-sm"></i> เล่นเลย
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Game 3: Cyber Memory -->
+                    <div class="glass-panel rounded-2xl p-5 hover:border-cyber-purple/60 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-40 rounded-xl bg-gradient-to-b from-purple-950 to-slate-950 overflow-hidden flex items-center justify-center mb-4 border border-slate-800">
+                                <div class="absolute inset-0 bg-[radial-gradient(#7000ff_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                                <i class="fa-solid fa-brain text-5xl text-cyber-purple group-hover:scale-125 transition duration-300"></i>
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-cyber bg-purple-600/80 text-white rounded font-bold">PUZZLE</span>
+                            </div>
+                            <h4 class="font-bold text-lg text-white mb-1">Cyber Memory Match</h4>
+                            <p class="text-xs text-slate-400 mb-4 line-clamp-2">ทดสอบความจำในการจับคู่การ์ดไซเบอร์ จับคู่ให้เร็วที่สุดเพื่อทำคอมโบ!</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400 mb-3 bg-slate-900/50 p-2 rounded-lg">
+                                <span>สถิติสูงสุด:</span>
+                                <span class="font-cyber text-cyber-yellow font-bold" id="hs-memory">0</span>
+                            </div>
+                            <button onclick="launchGame('memory')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 font-bold text-white shadow-lg shadow-purple-500/20 transition arcade-btn flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play text-sm"></i> เล่นเลย
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Game 4: Speed Reaction Tap -->
+                    <div class="glass-panel rounded-2xl p-5 hover:border-cyber-yellow/60 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-40 rounded-xl bg-gradient-to-b from-amber-950 to-slate-950 overflow-hidden flex items-center justify-center mb-4 border border-slate-800">
+                                <div class="absolute inset-0 bg-[radial-gradient(#ffe600_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                                <i class="fa-solid fa-bolt text-5xl text-cyber-yellow group-hover:scale-125 transition duration-300"></i>
+                                <span class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-cyber bg-amber-600/80 text-white rounded font-bold">REFLEX</span>
+                            </div>
+                            <h4 class="font-bold text-lg text-white mb-1">Speed Reflex Tap</h4>
+                            <p class="text-xs text-slate-400 mb-4 line-clamp-2">วัดความไวปฏิกิริยาตอบสนอง แตะเป้าหมายนีออนที่ปรากฏขึ้นให้เร็วที่สุด!</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400 mb-3 bg-slate-900/50 p-2 rounded-lg">
+                                <span>สถิติสูงสุด:</span>
+                                <span class="font-cyber text-cyber-yellow font-bold" id="hs-reflex">0</span>
+                            </div>
+                            <button onclick="launchGame('reflex')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition arcade-btn flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play text-sm"></i> เล่นเลย
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- GAME VIEW CONTAINER -->
+        <section id="game-view" class="hidden space-y-4 max-w-4xl mx-auto">
+            <!-- Game Top Header Bar -->
+            <div class="glass-panel rounded-2xl p-4 flex items-center justify-between">
+                <button onclick="showLobby()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก
+                </button>
+                <div class="text-center">
+                    <h3 id="current-game-title" class="font-cyber font-bold text-lg text-cyber-accent">GAME TITLE</h3>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="px-3 py-1 bg-slate-900/80 rounded-lg border border-slate-800 text-xs font-cyber">
+                        SCORE: <span id="game-score-display" class="text-cyber-yellow font-bold text-base">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game View Area Canvas/Interactive Grid Container -->
+            <div id="game-container" class="relative glass-panel rounded-2xl overflow-hidden min-h-[420px] sm:min-h-[500px] flex items-center justify-center border border-slate-800">
+                
+                <!-- Space Shooter & Snake Canvas -->
+                <canvas id="game-canvas" class="hidden rounded-xl"></canvas>
+
+                <!-- Memory Match Grid Container -->
+                <div id="memory-grid-container" class="hidden p-4 w-full max-w-lg grid grid-cols-4 gap-3 sm:gap-4"></div>
+
+                <!-- Reflex Tap Area -->
+                <div id="reflex-container" class="hidden w-full h-[450px] relative cursor-pointer overflow-hidden flex flex-col items-center justify-center">
+                    <div id="reflex-target" class="hidden absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-cyber-pink to-cyber-yellow shadow-lg shadow-cyber-pink/50 cursor-pointer flex items-center justify-center text-slate-950 font-bold text-xl transition-transform active:scale-90">
+                        <i class="fa-solid fa-crosshair"></i>
+                    </div>
+                    <div id="reflex-start-screen" class="text-center space-y-4">
+                        <i class="fa-solid fa-hand-pointer text-5xl text-cyber-yellow animate-bounce"></i>
+                        <h3 class="text-2xl font-bold">พร้อมทดสอบความไวหรือยัง?</h3>
+                        <p class="text-sm text-slate-400">แตะที่เป้าหมายนีออนที่จะสุ่มโผล่ขึ้นมาให้เร็วที่สุด!</p>
+                        <button onclick="startReflexGame()" class="px-6 py-3 rounded-xl bg-cyber-yellow text-slate-950 font-bold hover:bg-yellow-300 transition arcade-btn">
+                            เริ่มเล่นเลย
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Game Over Overlay -->
+                <div id="game-over-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6 text-center space-y-5 animate-fade-in">
+                    <div class="w-16 h-16 rounded-full bg-cyber-pink/20 text-cyber-pink border border-cyber-pink/40 flex items-center justify-center text-3xl">
+                        <i class="fa-solid fa-skull"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-white font-cyber tracking-wider">GAME OVER</h2>
+                        <p class="text-slate-400 text-sm mt-1" id="game-over-subtitle">หมดเวลาการทดสอบแล้ว!</p>
+                    </div>
+                    <div class="bg-slate-900/80 px-6 py-4 rounded-2xl border border-slate-800 space-y-1">
+                        <div class="text-xs text-slate-400">คะแนนที่ทำได้</div>
+                        <div class="text-4xl font-cyber font-black text-cyber-yellow" id="final-score">0</div>
+                        <div id="new-high-score-badge" class="hidden text-xs text-cyber-accent font-bold mt-1">🎉 NEW HIGH SCORE!</div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="restartCurrentGame()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyber-accent to-blue-600 font-bold text-slate-950 shadow-lg shadow-cyber-accent/20 transition arcade-btn flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> เล่นอีกครั้ง
+                        </button>
+                        <button onclick="showLobby()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold transition">
+                            กลับเมนูหลัก
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Virtual D-Pad Mobile Controls for Canvas games -->
+            <div id="mobile-controls" class="hidden glass-panel rounded-2xl p-4 sm:hidden">
+                <div class="flex justify-between items-center">
+                    <div class="grid grid-cols-3 gap-2 w-36 h-36">
+                        <div></div>
+                        <button ontouchstart="handleDpad('up')" class="bg-slate-800 rounded-lg border border-slate-700 active:bg-cyber-accent active:text-slate-950 flex items-center justify-center text-xl"><i class="fa-solid fa-caret-up"></i></button>
+                        <div></div>
+                        <button ontouchstart="handleDpad('left')" class="bg-slate-800 rounded-lg border border-slate-700 active:bg-cyber-accent active:text-slate-950 flex items-center justify-center text-xl"><i class="fa-solid fa-caret-left"></i></button>
+                        <div class="bg-slate-900 rounded-lg"></div>
+                        <button ontouchstart="handleDpad('right')" class="bg-slate-800 rounded-lg border border-slate-700 active:bg-cyber-accent active:text-slate-950 flex items-center justify-center text-xl"><i class="fa-solid fa-caret-right"></i></button>
+                        <div></div>
+                        <button ontouchstart="handleDpad('down')" class="bg-slate-800 rounded-lg border border-slate-700 active:bg-cyber-accent active:text-slate-950 flex items-center justify-center text-xl"><i class="fa-solid fa-caret-down"></i></button>
+                        <div></div>
+                    </div>
+
+                    <div id="action-btn-container" class="hidden">
+                        <button ontouchstart="handleActionButton()" class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyber-pink to-cyber-purple text-white font-bold text-lg shadow-lg active:scale-90 flex items-center justify-center">
+                            FIRE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ACHIEVEMENTS MODAL -->
+    <div id="achievements-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-panel border border-slate-700 rounded-3xl max-w-md w-full p-6 space-y-6 relative animate-scale-up">
+            <button onclick="closeModal('achievements-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-cyber-yellow/20 text-cyber-yellow flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold font-kanit">ถ้วยรางวัลและความสำเร็จ</h3>
+                    <p class="text-xs text-slate-400">พิชิตภารกิจเพื่อสะสมความสำเร็จ</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-1" id="achievements-list">
+                <!-- Achievements items populated via JS -->
+            </div>
+
+            <button onclick="closeModal('achievements-modal')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-sm text-slate-200">
+                ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none glass-panel border border-cyber-accent/50 rounded-2xl p-4 flex items-center gap-3 shadow-2xl">
+        <div class="w-10 h-10 rounded-xl bg-cyber-accent/20 text-cyber-accent flex items-center justify-center text-lg">
+            <i class="fa-solid fa-medal"></i>
+        </div>
+        <div>
+            <div id="toast-title" class="font-bold text-sm text-white">ปลดล็อกความสำเร็จ!</div>
+            <div id="toast-msg" class="text-xs text-slate-300">ได้รับถ้วยรางวัลแรกแล้ว</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-400 mt-auto">
+        <p>© 2026 CYBER ARCADE • พัฒนาด้วย Web Technologies • สนุกสนานได้ทุกอุปกรณ์</p>
+    </footer>
+
+    <script>
+        /* Web Audio API Sound Synthesizer (No external audio files required) */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(freq = 440, type = 'sine', duration = 0.1, vol = 0.1) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playLaserSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function playExplosionSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {}
+        }
+
+        function playScoreSound() {
+            playBeep(523.25, 'sine', 0.08, 0.1); // C5
+            setTimeout(() => playBeep(659.25, 'sine', 0.12, 0.1), 80); // E5
+        }
+
+        function playGameOverSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-cyber-accent';
+                playBeep(600, 'sine', 0.1, 0.1);
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+
+        /* Game Hub State & Achievements */
+        const APP_STATE = {
+            totalScore: 0,
+            gamesPlayed: 0,
+            totalWins: 0,
+            highScores: {
+                space: 0,
+                snake: 0,
+                memory: 0,
+                reflex: 0
+            },
+            achievements: {
+                firstGame: { name: 'จุดเริ่มต้นความมันส์', desc: 'เล่นเกมอะไรก็ได้ 1 ครั้ง', unlocked: false, icon: '🎯' },
+                spaceAce: { name: 'เจ้าแห่งอวกาศ', desc: 'ทำคะแนนใน Space Shooter ได้เกิน 500 คะแนน', unlocked: false, icon: '🚀' },
+                snakeMaster: { name: 'พญานาคิน', desc: 'ทำคะแนนใน Cyber Snake ได้เกิน 200 คะแนน', unlocked: false, icon: '🐍' },
+                memoryGod: { name: 'ความจำระดับควอนตัม', desc: 'จับคู่การ์ดครบภายในเวลาต่ำกว่า 30 วินาที', unlocked: false, icon: '🧠' },
+                speedDemon: { name: 'ตอบสนองไวแสง', desc: 'ทำคะแนนใน Reflex Tap ได้มากกว่า 150 คะแนน', unlocked: false, icon: '⚡' },
+                arcadeLegend: { name: 'ตำนานแห่งอาเขต', desc: 'สะสมคะแนนรวมทั้งหมดเกิน 1,500 คะแนน', unlocked: false, icon: '👑' }
+            },
+            currentGame: null,
+            currentGameScore: 0
+        };
+
+        // Load saved state
+        function loadSavedData() {
+            const saved = localStorage.getItem('cyber_arcade_data');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    APP_STATE.totalScore = parsed.totalScore || 0;
+                    APP_STATE.gamesPlayed = parsed.gamesPlayed || 0;
+                    APP_STATE.totalWins = parsed.totalWins || 0;
+                    APP_STATE.highScores = { ...APP_STATE.highScores, ...parsed.highScores };
+                    if (parsed.achievements) {
+                        Object.keys(parsed.achievements).forEach(k => {
+                            if (APP_STATE.achievements[k]) {
+                                APP_STATE.achievements[k].unlocked = parsed.achievements[k].unlocked;
+                            }
+                        });
+                    }
+                } catch(e){}
+            }
+            updateStatsUI();
+        }
+
+        function saveData() {
+            localStorage.setItem('cyber_arcade_data', JSON.stringify({
+                totalScore: APP_STATE.totalScore,
+                gamesPlayed: APP_STATE.gamesPlayed,
+                totalWins: APP_STATE.totalWins,
+                highScores: APP_STATE.highScores,
+                achievements: APP_STATE.achievements
+            }));
+        }
+
+        function updateStatsUI() {
+            document.getElementById('total-score-display').innerText = APP_STATE.totalScore.toLocaleString();
+            document.getElementById('hs-space').innerText = APP_STATE.highScores.space.toLocaleString();
+            document.getElementById('hs-snake').innerText = APP_STATE.highScores.snake.toLocaleString();
+            document.getElementById('hs-memory').innerText = APP_STATE.highScores.memory.toLocaleString();
+            document.getElementById('hs-reflex').innerText = APP_STATE.highScores.reflex.toLocaleString();
+
+            document.getElementById('stat-played').innerText = APP_STATE.gamesPlayed;
+            document.getElementById('stat-wins').innerText = APP_STATE.totalWins;
+            
+            const maxHS = Math.max(...Object.values(APP_STATE.highScores));
+            document.getElementById('stat-high').innerText = maxHS.toLocaleString();
+
+            // Count unlocked achievements
+            const unlockedCount = Object.values(APP_STATE.achievements).filter(a => a.unlocked).length;
+            document.getElementById('achievements-count').innerText = `${unlockedCount}/${Object.keys(APP_STATE.achievements).length}`;
+
+            renderAchievementsList();
+        }
+
+        function unlockAchievement(id) {
+            if (APP_STATE.achievements[id] && !APP_STATE.achievements[id].unlocked) {
+                APP_STATE.achievements[id].unlocked = true;
+                saveData();
+                updateStatsUI();
+                showToast(`ปลดล็อกความสำเร็จ!`, `${APP_STATE.achievements[id].icon} ${APP_STATE.achievements[id].name}`);
+                playScoreSound();
+            }
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function renderAchievementsList() {
+            const container = document.getElementById('achievements-list');
+            container.innerHTML = '';
+            Object.values(APP_STATE.achievements).forEach(ach => {
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-2xl flex items-center justify-between border ${
+                    ach.unlocked 
+                    ? 'bg-cyber-purple/15 border-cyber-purple/40 text-white' 
+                    : 'bg-slate-900/40 border-slate-800 text-slate-500 opacity-60'
+                }`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="text-2xl">${ach.icon}</div>
+                        <div>
+                            <div class="font-bold text-sm">${ach.name}</div>
+                            <div class="text-xs text-slate-400 font-light">${ach.desc}</div>
+                        </div>
+                    </div>
+                    <div>
+                        ${ach.unlocked ? '<i class="fa-solid fa-circle-check text-cyber-green text-lg"></i>' : '<i class="fa-solid fa-lock text-slate-600 text-sm"></i>'}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        /* Navigation Controls */
+        function showLobby() {
+            stopAllGameLoops();
+            document.getElementById('lobby-view').classList.remove('hidden');
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('game-over-modal').classList.add('hidden');
+            updateStatsUI();
+        }
+
+        function launchGame(gameKey) {
+            initAudio();
+            APP_STATE.currentGame = gameKey;
+            APP_STATE.currentGameScore = 0;
+            updateGameScoreDisplay(0);
+
+            document.getElementById('lobby-view').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+            document.getElementById('game-over-modal').classList.add('hidden');
+
+            const canvas = document.getElementById('game-canvas');
+            const memoryGrid = document.getElementById('memory-grid-container');
+            const reflexBox = document.getElementById('reflex-container');
+            const mobileControls = document.getElementById('mobile-controls');
+            const actionBtn = document.getElementById('action-btn-container');
+
+            canvas.classList.add('hidden');
+            memoryGrid.classList.add('hidden');
+            reflexBox.classList.add('hidden');
+            mobileControls.classList.add('hidden');
+            actionBtn.classList.add('hidden');
+
+            const titleMap = {
+                space: 'Space Defender 2077',
+                snake: 'Cyber Snake',
+                memory: 'Cyber Memory Match',
+                reflex: 'Speed Reflex Tap'
+            };
+            document.getElementById('current-game-title').innerText = titleMap[gameKey];
+
+            // Record game played count
+            APP_STATE.gamesPlayed++;
+            unlockAchievement('firstGame');
+
+            if (gameKey === 'space') {
+                canvas.classList.remove('hidden');
+                mobileControls.classList.remove('hidden');
+                actionBtn.classList.remove('hidden');
+                initSpaceShooter();
+            } else if (gameKey === 'snake') {
+                canvas.classList.remove('hidden');
+                mobileControls.classList.remove('hidden');
+                initSnakeGame();
+            } else if (gameKey === 'memory') {
+                memoryGrid.classList.remove('hidden');
+                initMemoryGame();
+            } else if (gameKey === 'reflex') {
+                reflexBox.classList.remove('hidden');
+                initReflexGame();
+            }
+
+            saveData();
+        }
+
+        function updateGameScoreDisplay(score) {
+            APP_STATE.currentGameScore = score;
+            document.getElementById('game-score-display').innerText = score.toLocaleString();
+        }
+
+        function gameOver(score, isWin = false) {
+            playGameOverSound();
+            document.getElementById('final-score').innerText = score.toLocaleString();
+            document.getElementById('game-over-modal').classList.remove('hidden');
+
+            // High Score Check
+            const currentHS = APP_STATE.highScores[APP_STATE.currentGame] || 0;
+            const newHSBadge = document.getElementById('new-high-score-badge');
+
+            if (score > currentHS) {
+                APP_STATE.highScores[APP_STATE.currentGame] = score;
+                newHSBadge.classList.remove('hidden');
+            } else {
+                newHSBadge.classList.add('hidden');
+            }
+
+            // Total Score Accumulation
+            APP_STATE.totalScore += score;
+            if (isWin) APP_STATE.totalWins++;
+
+            // Achievement Checks
+            if (APP_STATE.currentGame === 'space' && score >= 500) unlockAchievement('spaceAce');
+            if (APP_STATE.currentGame === 'snake' && score >= 200) unlockAchievement('snakeMaster');
+            if (APP_STATE.currentGame === 'reflex' && score >= 150) unlockAchievement('speedDemon');
+            if (APP_STATE.totalScore >= 1500) unlockAchievement('arcadeLegend');
+
+            saveData();
+        }
+
+        function restartCurrentGame() {
+            if (APP_STATE.currentGame) {
+                launchGame(APP_STATE.currentGame);
+            }
+        }
+
+        function stopAllGameLoops() {
+            if (spaceLoopId) cancelAnimationFrame(spaceLoopId);
+            if (snakeIntervalId) clearInterval(snakeIntervalId);
+            if (reflexTimerId) clearInterval(reflexTimerId);
+        }
+
+        /* ==========================================================================
+           GAME 1: SPACE DEFENDER 2077
+           ========================================================================== */
+        let canvas = document.getElementById('game-canvas');
+        let ctx = canvas.getContext('2d');
+        let spaceLoopId = null;
+
+        let player = { x: 0, y: 0, size: 24, speed: 6, hp: 3 };
+        let bullets = [];
+        let enemies = [];
+        let particles = [];
+        let keys = {};
+        let spaceScore = 0;
+        let enemySpawnTimer = 0;
+
+        function initSpaceShooter() {
+            stopAllGameLoops();
+            canvas.width = Math.min(window.innerWidth - 32, 700);
+            canvas.height = 480;
+
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 50;
+            player.hp = 3;
+            bullets = [];
+            enemies = [];
+            particles = [];
+            spaceScore = 0;
+            enemySpawnTimer = 0;
+
+            window.onkeydown = (e) => keys[e.code] = true;
+            window.onkeyup = (e) => keys[e.code] = false;
+
+            // Mouse / Touch targeting
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                player.x = e.clientX - rect.left;
+            };
+
+            canvas.onclick = () => fireBullet();
+
+            runSpaceLoop();
+        }
+
+        function fireBullet() {
+            bullets.push({
+                x: player.x,
+                y: player.y - 15,
+                vy: -9,
+                color: '#00f0ff'
+            });
+            playLaserSound();
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 20,
+                    color: color || '#ff007f'
+                });
+            }
+        }
+
+        function runSpaceLoop() {
+            // Update
+            if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+            if (keys['Space']) {
+                if (Math.random() < 0.2) fireBullet();
+            }
+
+            // Keep player inside canvas
+            player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+
+            // Bullets movement
+            bullets.forEach((b, i) => {
+                b.y += b.vy;
+                if (b.y < 0) bullets.splice(i, 1);
+            });
+
+            // Enemy Spawning
+            enemySpawnTimer++;
+            if (enemySpawnTimer % 40 === 0) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: -20,
+                    vy: 2 + Math.random() * 2,
+                    size: 18,
+                    type: Math.random() > 0.8 ? 'fast' : 'normal'
+                });
+            }
+
+            // Enemies movement & collision
+            enemies.forEach((e, ei) => {
+                e.y += e.vy;
+
+                // Bullet collision check
+                bullets.forEach((b, bi) => {
+                    const dist = Math.hypot(b.x - e.x, b.y - e.y);
+                    if (dist < e.size + 4) {
+                        createExplosion(e.x, e.y, e.type === 'fast' ? '#ffe600' : '#ff007f');
+                        playExplosionSound();
+                        spaceScore += (e.type === 'fast' ? 20 : 10);
+                        updateGameScoreDisplay(spaceScore);
+                        enemies.splice(ei, 1);
+                        bullets.splice(bi, 1);
+                    }
+                });
+
+                // Player collision check
+                const distPlayer = Math.hypot(player.x - e.x, player.y - e.y);
+                if (distPlayer < player.size + e.size) {
+                    createExplosion(player.x, player.y, '#00f0ff');
+                    enemies.splice(ei, 1);
+                    player.hp--;
+                    playExplosionSound();
+
+                    if (player.hp <= 0) {
+                        stopAllGameLoops();
+                        gameOver(spaceScore);
+                        return;
+                    }
+                }
+
+                if (e.y > canvas.height + 30) enemies.splice(ei, 1);
+            });
+
+            // Particles update
+            particles.forEach((p, pi) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(pi, 1);
+            });
+
+            // Render
+            ctx.fillStyle = '#080811';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stars background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            for (let i = 0; i < 20; i++) {
+                ctx.fillRect((i * 37 + enemySpawnTimer * 2) % canvas.width, (i * 97) % canvas.height, 2, 2);
+            }
+
+            // Draw Player Ship
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y - player.size);
+            ctx.lineTo(player.x - player.size, player.y + player.size);
+            ctx.lineTo(player.x + player.size, player.y + player.size);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 10;
+
+            // Draw Bullets
+            ctx.shadowBlur = 8;
+            bullets.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.fillRect(b.x - 2, b.y, 4, 10);
+            });
+
+            // Draw Enemies
+            enemies.forEach(e => {
+                ctx.fillStyle = e.type === 'fast' ? '#ffe600' : '#ff007f';
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 3, 3);
+            });
+
+            // Draw HP HUD
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Kanit';
+            ctx.fillText(`ชีวิต: ${'❤️'.repeat(player.hp)}`, 15, 25);
+
+            spaceLoopId = requestAnimationFrame(runSpaceLoop);
+        }
+
+        /* ==========================================================================
+           GAME 2: CYBER SNAKE
+           ========================================================================== */
+        let snakeIntervalId = null;
+        let gridSize = 20;
+        let tileCountX = 25;
+        let tileCountY = 20;
+
+        let snake = [];
+        let snakeDir = { x: 1, y: 0 };
+        let nextDir = { x: 1, y: 0 };
+        let food = { x: 5, y: 5 };
+        let snakeScore = 0;
+
+        function initSnakeGame() {
+            stopAllGameLoops();
+            canvas.width = 500;
+            canvas.height = 400;
+
+            tileCountX = canvas.width / gridSize;
+            tileCountY = canvas.height / gridSize;
+
+            snake = [
+                { x: 10, y: 10 },
+                { x: 9, y: 10 },
+                { x: 8, y: 10 }
+            ];
+            snakeDir = { x: 1, y: 0 };
+            nextDir = { x: 1, y: 0 };
+            snakeScore = 0;
+            spawnSnakeFood();
+
+            window.onkeydown = (e) => {
+                if ((e.code === 'ArrowUp' || e.code === 'KeyW') && snakeDir.y === 0) nextDir = { x: 0, y: -1 };
+                if ((e.code === 'ArrowDown' || e.code === 'KeyS') && snakeDir.y === 0) nextDir = { x: 0, y: 1 };
+                if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && snakeDir.x === 0) nextDir = { x: -1, y: 0 };
+                if ((e.code === 'ArrowRight' || e.code === 'KeyD') && snakeDir.x === 0) nextDir = { x: 1, y: 0 };
+            };
+
+            snakeIntervalId = setInterval(runSnakeLoop, 90);
+        }
+
+        function spawnSnakeFood() {
+            food.x = Math.floor(Math.random() * tileCountX);
+            food.y = Math.floor(Math.random() * tileCountY);
+        }
+
+        function runSnakeLoop() {
+            snakeDir = { ...nextDir };
+            const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
+
+            // Wall Collision Check
+            if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
+                stopAllGameLoops();
+                gameOver(snakeScore);
+                return;
+            }
+
+            // Self Collision Check
+            for (let part of snake) {
+                if (part.x === head.x && part.y === head.y) {
+                    stopAllGameLoops();
+                    gameOver(snakeScore);
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // Food Check
+            if (head.x === food.x && head.y === food.y) {
+                snakeScore += 10;
+                updateGameScoreDisplay(snakeScore);
+                playBeep(880, 'sine', 0.1, 0.15);
+                spawnSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            // Render
+            ctx.fillStyle = '#080811';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid lines background
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Draw Snake
+            snake.forEach((part, index) => {
+                ctx.fillStyle = index === 0 ? '#00ff66' : 'rgba(0, 255, 102, 0.6)';
+                ctx.shadowColor = '#00ff66';
+                ctx.shadowBlur = index === 0 ? 10 : 0;
+                ctx.fillRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, gridSize - 2);
+            });
+
+            // Draw Food
+            ctx.fillStyle = '#ff007f';
+            ctx.shadowColor = '#ff007f';
+            ctx.shadowBlur = 12;
+            ctx.fillRect(food.x * gridSize + 2, food.y * gridSize + 2, gridSize - 4, gridSize - 4);
+            ctx.shadowBlur = 0;
+        }
+
+        /* Mobile Touch Controls Handler for Space & Snake */
+        function handleDpad(dir) {
+            if (APP_STATE.currentGame === 'snake') {
+                if (dir === 'up' && snakeDir.y === 0) nextDir = { x: 0, y: -1 };
+                if (dir === 'down' && snakeDir.y === 0) nextDir = { x: 0, y: 1 };
+                if (dir === 'left' && snakeDir.x === 0) nextDir = { x: -1, y: 0 };
+                if (dir === 'right' && snakeDir.x === 0) nextDir = { x: 1, y: 0 };
+            } else if (APP_STATE.currentGame === 'space') {
+                if (dir === 'left') player.x -= 20;
+                if (dir === 'right') player.x += 20;
+            }
+        }
+
+        function handleActionButton() {
+            if (APP_STATE.currentGame === 'space') {
+                fireBullet();
+            }
+        }
+
+        /* ==========================================================================
+           GAME 3: CYBER MEMORY MATCH
+           ========================================================================== */
+        const MEMORY_ICONS = ['🚀', '⚡', '🤖', '🎮', '👾', '💎', '🛸', '🔮'];
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let memoryMoves = 0;
+        let memoryTimer = 0;
+        let memoryTimerInterval = null;
+
+        function initMemoryGame() {
+            stopAllGameLoops();
+            const gridContainer = document.getElementById('memory-grid-container');
+            gridContainer.innerHTML = '';
+            flippedCards = [];
+            matchedPairs = 0;
+            memoryMoves = 0;
+            memoryTimer = 0;
+
+            // Duplicate icons to create pairs
+            const cardDeck = [...MEMORY_ICONS, ...MEMORY_ICONS].sort(() => Math.random() - 0.5);
+
+            cardDeck.forEach((icon, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card h-24 sm:h-28 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl sm:text-4xl cursor-pointer hover:border-cyber-purple transition-all duration-300 transform active:scale-95 shadow-md';
+                card.dataset.icon = icon;
+                card.dataset.index = index;
+                card.innerHTML = `<span class="hidden">${icon}</span><i class="fa-solid fa-code text-slate-700 text-2xl card-back"></i>`;
+
+                card.onclick = () => flipMemoryCard(card);
+                gridContainer.appendChild(card);
+            });
+
+            if (memoryTimerInterval) clearInterval(memoryTimerInterval);
+            memoryTimerInterval = setInterval(() => {
+                memoryTimer++;
+            }, 1000);
+        }
+
+        function flipMemoryCard(card) {
+            if (flippedCards.length >= 2 || card.classList.contains('matched') || flippedCards.includes(card)) return;
+
+            card.classList.add('bg-cyber-purple/30', 'border-cyber-purple');
+            card.querySelector('.card-back').classList.add('hidden');
+            card.querySelector('span').classList.remove('hidden');
+
+            playBeep(600, 'sine', 0.08, 0.1);
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                memoryMoves++;
+                const [card1, card2] = flippedCards;
+
+                if (card1.dataset.icon === card2.dataset.icon) {
+                    // Match found
+                    playBeep(800, 'sine', 0.15, 0.2);
+                    card1.classList.add('matched', 'border-cyber-green', 'bg-cyber-green/20');
+                    card2.classList.add('matched', 'border-cyber-green', 'bg-cyber-green/20');
+                    flippedCards = [];
+                    matchedPairs++;
+
+                    const currentScore = matchedPairs * 50 - memoryMoves * 2;
+                    updateGameScoreDisplay(Math.max(0, currentScore));
+
+                    if (matchedPairs === MEMORY_ICONS.length) {
+                        clearInterval(memoryTimerInterval);
+                        const finalScore = Math.max(100, 500 - memoryTimer * 5 - memoryMoves * 10);
+                        updateGameScoreDisplay(finalScore);
+
+                        if (memoryTimer <= 30) unlockAchievement('memoryGod');
+
+                        setTimeout(() => {
+                            gameOver(finalScore, true);
+                        }, 500);
+                    }
+                } else {
+                    // No match
+                    setTimeout(() => {
+                        card1.classList.remove('bg-cyber-purple/30', 'border-cyber-purple');
+                        card2.classList.remove('bg-cyber-purple/30', 'border-cyber-purple');
+                        card1.querySelector('.card-back').classList.remove('hidden');
+                        card2.querySelector('.card-back').classList.remove('hidden');
+                        card1.querySelector('span').classList.add('hidden');
+                        card2.querySelector('span').classList.add('hidden');
+                        flippedCards = [];
+                    }, 800);
+                }
+            }
+        }
+
+        /* ==========================================================================
+           GAME 4: SPEED REFLEX TAP
+           ========================================================================== */
+        let reflexTimerId = null;
+        let reflexScore = 0;
+        let reflexTimeLeft = 20;
+
+        function initReflexGame() {
+            stopAllGameLoops();
+            document.getElementById('reflex-start-screen').classList.remove('hidden');
+            document.getElementById('reflex-target').classList.add('hidden');
+        }
+
+        function startReflexGame() {
+            document.getElementById('reflex-start-screen').classList.add('hidden');
+            const target = document.getElementById('reflex-target');
+            target.classList.remove('hidden');
+
+            reflexScore = 0;
+            reflexTimeLeft = 20;
+            updateGameScoreDisplay(0);
+
+            moveReflexTarget();
+
+            target.onclick = (e) => {
+                e.stopPropagation();
+                reflexScore += 10;
+                updateGameScoreDisplay(reflexScore);
+                playBeep(900, 'sine', 0.05, 0.15);
+                moveReflexTarget();
+            };
+
+            reflexTimerId = setInterval(() => {
+                reflexTimeLeft--;
+                if (reflexTimeLeft <= 0) {
+                    stopAllGameLoops();
+                    target.classList.add('hidden');
+                    gameOver(reflexScore, true);
+                }
+            }, 1000);
+        }
+
+        function moveReflexTarget() {
+            const container = document.getElementById('reflex-container');
+            const target = document.getElementById('reflex-target');
+
+            const maxX = container.clientWidth - 90;
+            const maxY = container.clientHeight - 90;
+
+            const randomX = Math.max(20, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(20, Math.floor(Math.random() * maxY));
+
+            target.style.left = `${randomX}px`;
+            target.style.top = `${randomY}px`;
+        }
+
+        /* App Initialization */
+        window.onload = function() {
+            loadSavedData();
+            console.log('Cyber Arcade Ready.');
+        };
+    </script>
+</body>
+</html>
